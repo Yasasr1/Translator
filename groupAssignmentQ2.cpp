@@ -6,8 +6,6 @@
 #include<bits/stdc++.h> 
 #include <regex>
 
-
-
 using namespace std;
 
 int tableSize = 3000;
@@ -41,7 +39,6 @@ class HashTable{
             hash_value = (hash_value + (c - 'a' + 1) * p_pow) % tableSize;
             p_pow = (p_pow * p) % tableSize;
         }
-        //cout << "Hash value " << hash_value << endl; 
         return hash_value;
     }
 
@@ -51,18 +48,20 @@ class HashTable{
         hashTable[hash].push_back(node);
     }
 
-    string search(string eng){
+    string search(string eng,string language){
         int hash = hashFunction(eng);
+        string output;
         list<HashNode> :: iterator i;
         for(i = hashTable[hash].begin(); i != hashTable[hash].end(); i++){
             if(i->english == eng){
-                //cout << "french: " << i->french << " spanish: " << i->spanish << endl;
-                return i->french;
+                if(language == "fre")
+                    return i->french;
+                else if(language == "spa")
+                    return i->spanish;
                 break;
             }
         }
         if(i->english != eng){
-            //cout << "not found" << endl;
             return "["+eng+"]";
     
         }
@@ -70,7 +69,7 @@ class HashTable{
 
 };
 
-int main(){
+int main(int argc, char** argv){
     HashTable table;
 
     fstream dictionaryFile;
@@ -94,52 +93,66 @@ int main(){
                 }
                 
             }
-            //cout << words[0] << " " << words[1] << " " << words[2] << endl;
             table.insert(words[0],words[1],words[2]);
             words.clear();
             line.erase();
         }
         dictionaryFile.close();
-        /*string one = table.search("yasas");
-        string two = table.search("bag");
-        string three = table.search("your");
-        string four = table.search("station");
-        cout << one << " " << two << " " << three << " " << four;*/
-
-        
-        dictionaryFile.close();
-
         
     }
 
     fstream englishText;
-    regex reg1("(is\\s)|(the\\s)|(a\\s)");  // Find double word.
+    regex reg1("(is\\s)|(the\\s)|(a\\s)|(an\\s)|(did\\s)|(it\\s)|(\\?)");  // Find double word.
     string replacement = ""; 
 
-    englishText.open("text.txt",ios::in);
+    if(argc<2)
+        englishText.open("text.txt",ios::in);
+    else
+        englishText.open(argv[1],ios::in);
     if(englishText.is_open()){
        string engLine;
+       
         while(getline(englishText, engLine)){
-            //cout << engLine;
+            cout << "English text: " << engLine << endl;
             string result = regex_replace(engLine, reg1, replacement);
             transform(result.begin(), result.end(), result.begin(), ::tolower);
-            cout << result; 
+            //cout << result; 
+            string translation;
+            string engWord = "";
 
+            cout << "French translation: ";
+            for(int i=0; i<=result.length(); i++){
+                if(result[i] == ' ' || i == result.length()){
+                    translation = table.search(engWord,"fre");
+                    cout << translation << " ";
+                    if(i == result.length()){
+                        cout << endl;
+                    }
+                    engWord.erase();
+                }
+                else
+                {
+                    engWord=engWord+result[i];
+                }   
+            }
 
+            cout << "Spanish translation: ";
+            for(int i=0; i<=result.length(); i++){
+                if(result[i] == ' ' || i == result.length()){
+                    translation = table.search(engWord,"spa");
+                    cout << translation << " ";
+                    if(i == result.length()){
+                        cout << endl;
+                    }
+                    engWord.erase();
+                }
+                else
+                {
+                    engWord=engWord+result[i];
+                }    
+            }
         }
         englishText.close();
-
-
     }
-
-    /*regex reg1("(is\\s)|(the\\s)|(a\\s)");  // Find double word.
-         // Replace with one word.
-
-    string target = "where is the train station";
-    string result = regex_replace(target, reg1, replacement);
-    std::cout << result << std::endl;*/
-        
-
     return 0;
-
 }
